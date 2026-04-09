@@ -100,6 +100,8 @@ all the models are the same, but the context they can see are different
     - role play adventurer 1
 
 ```xml
+# controller or actor
+<task>controller|actor</task>
 <PLAYERS>
 
 <player_name> jhuanglululu
@@ -286,92 +288,6 @@ controller sample input
 </text>
 
 <character>
-# output starts here
-```
-
----
-
-model 1 sample input
-
-```xml
-<PLAYERS>
-
-<player_name> jhuanglululu
-<state>
-    information relevant to the current state of the player
-</state>
-
-<player_name> leon87_tw
-<state>
-    entered the Big City 5 days ago, knows dark magic
-</state>
-
-<CHARACTERS>
-
-<character_name> Adventurer John
-<persona> 
-    long description that is only shown once at the very start
-</persona>
-<internal_state>
-    information relevant to the inner state of the character, ie. feelings, thoughts
-</internal_state>
-<external_state>
-    information relevant to the current state of the character
-</external_state>
-
-<character_name> Adventurer Owen
-<persona>
-    Owen is an adventurer from Hsinchu Kingdom. He is best known for his outdoor cooking skill...
-</persona>
-<external_state>
-    Owen owned a cooking pan that can be used as a weapon
-</external_state>
-
-<PAST_EVENTS>
-
-<past_event> time description
-<event>
-    things that happened in the past(history)
-</event>
-
-<past_event> March 11th, 2006
-<event>
-    Adventurer Johna and Owen defeated the final boss inside the Great Dungeon
-</event>
-
-<RECENT_EVENTS>
-
-<recent_event> time description
-<event>
-    things that happened recently and are more closely related to the conversation
-</event>
-
-<recent_event> April 8th, 2026
-<event>
-    jhuanglululu and Leon87_tw went to the Great Dungeon
-</event>
-
-<recent_event> April 9th, 2026
-<event>
-    Adventurer John and Adventurer Owen are going to bar
-</event>
-
-<MESSAGES>
-
-<player>
-	jhuanglululu
-</player>
-<text>
-    Hello, we want to sell our look, where can I find the adventure guild
-</text>
-
-<character>
-	Adventurer John
-</character>
-<persona>
-    short description that gets repeated everytime
-</persona>
-<text>
 # output starts here
 ```
 
