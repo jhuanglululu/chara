@@ -92,7 +92,7 @@ models & roles:
 
 all the models are the same, but the context they can see are different
 
-- model 0
+- controller
     - decide who and when to speak
 - model 1
     - role play adventurer 1
@@ -176,7 +176,7 @@ all the models are the same, but the context they can see are different
     Hello, we want to sell our look, where can I find the adventure guild
 </text>
 
-# model 0 decides that John(model 1) should speak
+# controller decides that John(model 1) should speak
 <character>
 	Adventurer John
 </character>
@@ -189,7 +189,7 @@ all the models are the same, but the context they can see are different
 </text>
 # short persona of John is dropped after text closed
 
-# model 0 decides that Owen(model 2) should speak
+# controller decides that Owen(model 2) should speak
 <character>
 	Adventurer Owen
 </character>
@@ -202,13 +202,13 @@ all the models are the same, but the context they can see are different
 </text>
 # short persona of Owen is dropped after text closed
 
-# model 0 decides that player should speak
-# when model 0 outputs <player>
+# controller decides that player should speak
+# when controller outputs <player>
 # conversation is handoff to player
 <player>
 ```
 
-model 0 sample input
+controller sample input
 
 ```xml
 <PLAYERS>
