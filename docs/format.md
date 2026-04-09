@@ -101,7 +101,7 @@ all the models are the same, but the context they can see are different
 
 ```xml
 # controller or actor
-<task>controller|actor</task>
+<task_controlelr> | <task_actor>
 <PLAYERS>
 
 <player_name> jhuanglululu
