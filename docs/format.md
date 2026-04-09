@@ -156,10 +156,12 @@ all the models are the same, but the context they can see are different
 <event>
     things that happened recently and are more closely related to the conversation
 </event>
+
 <recent_event> April 8th, 2026
 <event>
     jhuanglululu and Leon87_tw went to the Great Dungeon
 </event>
+
 <recent_event> April 9th, 2026
 <event>
     Adventurer John and Adventurer Owen are going to bar
@@ -263,10 +265,12 @@ model 0 sample input
 <event>
     things that happened recently and are more closely related to the conversation
 </event>
+
 <recent_event> April 8th, 2026
 <event>
     jhuanglululu and Leon87_tw went to the Great Dungeon
 </event>
+
 <recent_event> April 9th, 2026
 <event>
     Adventurer John and Adventurer Owen are going to bar
@@ -341,10 +345,12 @@ model 1 sample input
 <event>
     things that happened recently and are more closely related to the conversation
 </event>
+
 <recent_event> April 8th, 2026
 <event>
     jhuanglululu and Leon87_tw went to the Great Dungeon
 </event>
+
 <recent_event> April 9th, 2026
 <event>
     Adventurer John and Adventurer Owen are going to bar
