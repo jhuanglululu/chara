@@ -1,6 +1,7 @@
 from torch import nn, Tensor
 
 from .configs.model import ModelConfig
+from .layers import DecoderBlock, RmsNorm
 
 
 class TransformerLM(nn.Module):
@@ -12,17 +13,21 @@ class TransformerLM(nn.Module):
         self.embedding = nn.Embedding(config.vocab_size, config.d_model)
 
         self.decoder_stack = nn.ModuleList(
-            [nn.Linear(config.d_model, config.d_model) for _ in range(config.n_layers)]
+            [DecoderBlock(config) for _ in range(config.n_layers)]
         )
+
+        self.norm = RmsNorm(config)
 
         self.projection = nn.Linear(config.d_model, config.vocab_size, bias=False)
         # shared weight projection
         self.projection.weight = self.embedding.weight
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, x: Tensor, mask: Tensor) -> Tensor:
         x = self.embedding(x)
 
         for decoder in self.decoder_stack:
-            x = decoder(x)
+            x = decoder(x, mask)
+
+        x = self.norm(x)
 
         return self.projection(x)
