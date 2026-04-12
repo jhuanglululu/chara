@@ -3,7 +3,7 @@ import pytest
 
 from src import chara
 
-test_config = chara.config.ModelConfig(
+test_config = chara.configs.ModelConfig(
     vocab_size=5000,
     max_seq_len=256,
     d_model=128,
