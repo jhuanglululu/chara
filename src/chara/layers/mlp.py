@@ -8,7 +8,7 @@ class SwiGluMlp(nn.Module):
     def __init__(self, config: ModelConfig) -> None:
         super().__init__()
 
-        # for both up gate and up projection
+        # for both gate and up projection
         self.w_fused = nn.Linear(config.d_model, 2 * config.d_ff)
         self.w_down = nn.Linear(config.d_ff, config.d_model)
 
