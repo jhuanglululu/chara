@@ -1,2 +1,3 @@
 from .model import TransformerLM
-from . import config
+from . import configs
+from . import layers

@@ -1,6 +1,6 @@
 from torch import nn, Tensor
 
-from .config.model import ModelConfig
+from .configs.model import ModelConfig
 
 
 class TransformerLM(nn.Module):
