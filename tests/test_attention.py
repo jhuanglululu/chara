@@ -21,11 +21,7 @@ test_config = chara.configs.ModelConfig(
 def test_attention_shape(batch_size: int, seq_len: int):
     """test whether input and output shape is the same for attention"""
     attention = chara.layers.Attention(test_config)
-    mask = (
-        torch.triu(torch.ones(seq_len, seq_len), diagonal=1)[None, None, :, :]
-        .expand(batch_size, 1, seq_len, seq_len)
-        .bool()
-    )
+    mask = chara.causal_mask(batch_size, seq_len)
 
     x = torch.rand(batch_size, seq_len, test_config.d_model)
     with torch.no_grad():
@@ -41,11 +37,7 @@ def test_attention_shape(batch_size: int, seq_len: int):
 def test_attention_invariance(batch_size: int, seq_len: int):
     """test whether masking is applied correctly for attention"""
     attention = chara.layers.Attention(test_config)
-    mask = (
-        torch.triu(torch.ones(seq_len, seq_len), diagonal=1)[None, None, :, :]
-        .expand(batch_size, 1, seq_len, seq_len)
-        .bool()
-    )
+    mask = chara.causal_mask(batch_size, seq_len)
 
     x1 = torch.rand(batch_size, seq_len, test_config.d_model)
     x2 = x1.clone()
@@ -68,11 +60,7 @@ def test_attention_invariance(batch_size: int, seq_len: int):
 def test_attention_smoke(batch_size: int, seq_len: int):
     """test whether gradient update is correct for attention"""
     attention = chara.layers.Attention(test_config)
-    mask = (
-        torch.triu(torch.ones(seq_len, seq_len), diagonal=1)[None, None, :, :]
-        .expand(batch_size, 1, seq_len, seq_len)
-        .bool()
-    )
+    mask = chara.causal_mask(batch_size, seq_len)
 
     x = torch.rand(batch_size, seq_len, test_config.d_model, requires_grad=True)
     y = attention(x, mask)

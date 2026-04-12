@@ -3,6 +3,7 @@ import pytest
 
 from src import chara
 
+
 test_config = chara.configs.ModelConfig(
     vocab_size=5000,
     max_seq_len=256,
@@ -21,11 +22,12 @@ def test_end_to_end(batch_size: int, seq_len: int):
     """test whether output shape is correct for entire model"""
     model = chara.TransformerLM(test_config)
     model.eval()
+    mask = chara.causal_mask(batch_size, seq_len)
 
     x = torch.randint(0, test_config.vocab_size, (batch_size, seq_len))
 
     with torch.no_grad():
-        logits = model(x)
+        logits = model(x, mask)
 
     expected_shape = (
         batch_size,
@@ -33,6 +35,7 @@ def test_end_to_end(batch_size: int, seq_len: int):
         test_config.vocab_size,
     )
 
+    assert logits.dtype == torch.float
     assert logits.shape == expected_shape, (
         f"expected ({batch_size}, {seq_len}, {test_config.vocab_size}), got {logits.shape}"
     )
