@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import torch
 
@@ -25,3 +25,14 @@ class ModelConfig:
     """dropout probability applied during training"""
     device: torch.types.Device
     """pytorch device for training and inference"""
+
+    d_head: int = field(init=False)
+
+    def __post_init__(self):
+        if self.d_model % self.n_heads != 0:
+            raise ValueError("d_model must integer multiple of n_heads")
+
+        self.d_head = self.d_model // self.n_heads
+
+        if self.d_head % 2 != 0:
+            raise ValueError("d_head must be divisible by 2")
