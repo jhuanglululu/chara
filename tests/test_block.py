@@ -12,7 +12,6 @@ test_config = chara.configs.ModelConfig(
     d_ff=512,
     rms_norm_eps=1e-6,
     dropout=0.1,
-    device=torch.device("cpu"),
 )
 
 
@@ -21,12 +20,13 @@ test_config = chara.configs.ModelConfig(
 def test_block_shape(batch_size: int, seq_len: int):
     """test whether input and output shape is the same for block"""
     block = chara.layers.DecoderBlock(test_config)
+    rope = chara.layers.RoPE(test_config)
     mask = chara.causal_mask(batch_size, seq_len)
 
     x = torch.rand(batch_size, seq_len, test_config.d_model)
 
     with torch.no_grad():
-        y = block(x, mask)
+        y = block(x, mask, rope)
 
     assert x.shape == y.shape, f"expected {x.shape}, got {y.shape}"
 
@@ -36,10 +36,11 @@ def test_block_shape(batch_size: int, seq_len: int):
 def test_block_smoke(batch_size: int, seq_len: int):
     """test whether gradient update is correct for attention"""
     block = chara.layers.DecoderBlock(test_config)
+    rope = chara.layers.RoPE(test_config)
     mask = chara.causal_mask(batch_size, seq_len)
 
     x = torch.rand(batch_size, seq_len, test_config.d_model, requires_grad=True)
-    y = block(x, mask)
+    y = block(x, mask, rope)
     loss = y.sum()
     loss.backward()
 

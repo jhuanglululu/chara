@@ -13,7 +13,6 @@ test_config = chara.configs.ModelConfig(
     d_ff=512,
     rms_norm_eps=1e-6,
     dropout=0.1,
-    device=torch.device("cpu"),
 )
 
 
@@ -22,11 +21,12 @@ test_config = chara.configs.ModelConfig(
 def test_attention_shape(batch_size: int, seq_len: int):
     """test whether input and output shape is the same for attention"""
     attention = chara.layers.Attention(test_config)
+    rope = chara.layers.RoPE(test_config)
     mask = chara.causal_mask(batch_size, seq_len)
 
     x = torch.rand(batch_size, seq_len, test_config.d_model)
     with torch.no_grad():
-        y = attention(x, mask)
+        y = attention(x, mask, rope)
 
     assert x.shape == y.shape, (
         f"attention input and output shape mismatched: expected {x.shape} got {y.shape}"
@@ -38,6 +38,7 @@ def test_attention_shape(batch_size: int, seq_len: int):
 def test_attention_invariance(batch_size: int, seq_len: int):
     """test whether masking is applied correctly for attention"""
     attention = chara.layers.Attention(test_config)
+    rope = chara.layers.RoPE(test_config)
     mask = chara.causal_mask(batch_size, seq_len)
 
     x1 = torch.rand(batch_size, seq_len, test_config.d_model)
@@ -45,8 +46,8 @@ def test_attention_invariance(batch_size: int, seq_len: int):
     x2[:, -1, :] = torch.rand(batch_size, test_config.d_model)
 
     with torch.no_grad():
-        y1 = attention(x1, mask)
-        y2 = attention(x2, mask)
+        y1 = attention(x1, mask, rope)
+        y2 = attention(x2, mask, rope)
 
     assert torch.allclose(y1[:, : seq_len - 1, :], y2[:, : seq_len - 1, :]), (
         "earlier output changed when later input modified"
@@ -61,10 +62,11 @@ def test_attention_invariance(batch_size: int, seq_len: int):
 def test_attention_smoke(batch_size: int, seq_len: int):
     """test whether gradient update is correct for attention"""
     attention = chara.layers.Attention(test_config)
+    rope = chara.layers.RoPE(test_config)
     mask = chara.causal_mask(batch_size, seq_len)
 
     x = torch.rand(batch_size, seq_len, test_config.d_model, requires_grad=True)
-    y = attention(x, mask)
+    y = attention(x, mask, rope)
     loss = y.sum()
     loss.backward()
 

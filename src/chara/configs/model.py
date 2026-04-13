@@ -1,7 +1,5 @@
 from dataclasses import dataclass, field
 
-import torch
-
 
 @dataclass
 class ModelConfig:
@@ -23,8 +21,6 @@ class ModelConfig:
     """numerical stability constant for RMSNorm"""
     dropout: float
     """dropout probability applied during training"""
-    device: torch.types.Device
-    """pytorch device for training and inference"""
 
     d_head: int = field(init=False)
 
