@@ -1,7 +1,7 @@
 from torch import nn, Tensor
 
 from .configs.model import ModelConfig
-from .layers import DecoderBlock, RmsNorm
+from .layers import DecoderBlock, RmsNorm, RoPE
 
 
 class TransformerLM(nn.Module):
@@ -12,8 +12,10 @@ class TransformerLM(nn.Module):
 
         self.embedding = nn.Embedding(config.vocab_size, config.d_model)
 
+        rope = RoPE(config)
+
         self.decoder_stack = nn.ModuleList(
-            [DecoderBlock(config) for _ in range(config.n_layers)]
+            [DecoderBlock(config, rope) for _ in range(config.n_layers)]
         )
 
         self.norm = RmsNorm(config)
