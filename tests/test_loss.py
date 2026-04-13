@@ -15,6 +15,7 @@ test_config = chara.configs.ModelConfig(
     d_ff=512,
     rms_norm_eps=1e-6,
     dropout=0.1,
+    device=torch.device("cpu"),
 )
 
 
