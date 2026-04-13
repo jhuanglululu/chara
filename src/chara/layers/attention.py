@@ -28,11 +28,7 @@ class Attention(nn.Module):
         qkv = qkv.permute(0, 2, 1, 3)  # (batch_size, n_heads, seq_len, 3 * d_heads)
         q, k, v = qkv.chunk(3, dim=-1)  # (batch_size, n_heads, seq_len, d_heads)
 
-        score = q @ k.transpose(-2, -1) / math.sqrt(self.d_heads)
-        score = score.masked_fill(mask, -torch.inf)
-
-        attention = F.softmax(score, dim=-1)
-        value = attention @ v
+        value = F.scaled_dot_product_attention(q, k, v, attn_mask=~mask)
         value = value.permute(0, 2, 1, 3).reshape(x.shape)
 
         return self.w_o(value)
