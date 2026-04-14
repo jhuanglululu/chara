@@ -27,7 +27,7 @@ def test_end_to_end(batch_size: int, seq_len: int):
     x = torch.randint(0, test_config.vocab_size, (batch_size, seq_len))
 
     with torch.no_grad():
-        logits = model(x, mask)
+        logits, _ = model(x, mask)
 
     expected_shape = (
         batch_size,
