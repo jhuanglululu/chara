@@ -30,11 +30,25 @@ def get_tokenizer(tokenizer_file: str) -> Tokenizer:
     return tokenizer
 
 
+def lazy_file_split(filepath, sep, chunk_size=8192):
+    remainder = ""
+    with open(filepath, "r") as f:
+        while chunk := f.read(chunk_size):
+            remainder += chunk
+            *parts, remainder = remainder.split(sep)
+            yield from parts
+        if remainder:
+            yield remainder
+
+
 def get_dataset(tokenizer: Tokenizer, data_file: str, seq_len: int) -> DebugDataset:
-    with open(data_file, "r") as f:
-        texts = f.read()
-    texts = texts.split("\n")
-    texts = [x for x in texts if x][:20]
+    texts = []
+    for text in lazy_file_split(data_file, "\n\n"):
+        if text:
+            texts += [text.strip()]
+        if len(texts) >= 10_000:
+            break
+
     print(f"dataset size: {len(texts)}")
     return DebugDataset(tokenizer, texts, seq_len=seq_len)
 
