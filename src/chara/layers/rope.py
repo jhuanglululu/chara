@@ -11,7 +11,7 @@ class RoPE(nn.Module):
         d_rope: int,
         seq_len: int,
         base: int = 10000,
-        per_head: bool = False,
+        per_head: bool = True,
     ) -> None:
         super().__init__()
         self._build_cache(n_heads, d_rope, seq_len, base, per_head)
