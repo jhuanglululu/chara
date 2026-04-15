@@ -10,13 +10,13 @@ from scripts.debug.dataset import get_tokenizer, get_dataset, get_loader
 from scripts.debug.repl import repl
 
 
-seq_len = 128
+seq_len = 320
 batch_size = 4
-loss_thresh = 5e-2
+loss_thresh = 5e-4
 
 tconfig = TrainingConfig(
     batch_size=batch_size,
-    epochs=512,
+    epochs=256,
     learning_rate=3e-4,
     device=torch.device("mps" if torch.backends.mps.is_available() else "cpu"),
 )
@@ -30,10 +30,10 @@ loader = get_loader(dataset, config=tconfig)
 mconfig = chara.configs.ModelConfig(
     vocab_size=tokenizer.get_vocab_size(),
     max_seq_len=seq_len,
-    d_model=256,
+    d_model=512,
     n_layers=4,
-    n_heads=4,
-    d_ff=1024,
+    n_heads=8,
+    d_ff=4 * 512,
     rms_norm_eps=1e-6,
     dropout=0.0,
 )
@@ -59,7 +59,7 @@ for epoch in range(tconfig.epochs):
         input_ids = input_ids.to(tconfig.device)
         mask = mask.to(tconfig.device)
 
-        logits = model(input_ids, mask)
+        logits, _ = model(input_ids, mask)
         loss = chara.cross_entropy_loss(
             logits, input_ids, pad_mask.bool().to(tconfig.device)
         )
@@ -71,11 +71,11 @@ for epoch in range(tconfig.epochs):
         optimizer.step()
 
     print(f"\repoch: {epoch}, loss: {min_loss:.1e}        ", end="")
-    if min_loss < loss_thresh:
+    if loss_thresh is not None and min_loss < loss_thresh:
         print(f"\nearly exiting", end="")
         break
 
 print()
 
 
-repl(tconfig.device, tokenizer, model, seq_len)
+repl(mconfig, tconfig, tokenizer, model, seq_len)

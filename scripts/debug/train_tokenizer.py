@@ -9,7 +9,7 @@ tokenizer = Tokenizer(BPE(unk_token="<unk>"))
 tokenizer.pre_tokenizer = ByteLevel(add_prefix_space=False)
 tokenizer.decoder = ByteLevelDecoder()
 trainer = BpeTrainer(
-    vocab_size=2048, special_tokens=["<pad>", "<unk>", "<bos>", "<eos>"]
+    vocab_size=16384, special_tokens=["<pad>", "<unk>", "<bos>", "<eos>"]
 )
 tokenizer.train(files=["data/overfit.txt"], trainer=trainer)
 
