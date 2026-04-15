@@ -28,14 +28,7 @@ dataset = get_dataset(tokenizer, "data/overfit.txt", seq_len=seq_len)
 loader = get_loader(dataset, config=tconfig)
 
 mconfig = chara.configs.ModelConfig(
-    vocab_size=tokenizer.get_vocab_size(),
-    max_seq_len=seq_len,
-    d_model=512,
-    n_layers=4,
-    n_heads=8,
-    d_ff=4 * 512,
-    rms_norm_eps=1e-6,
-    dropout=0.0,
+    vocab_size=tokenizer.get_vocab_size(), max_seq_len=seq_len, d_model=256, n_layers=4
 )
 
 model = chara.TransformerLM(mconfig)

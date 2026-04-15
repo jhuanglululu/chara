@@ -14,7 +14,12 @@ class TransformerLM(nn.Module):
 
         self.embedding = nn.Embedding(config.vocab_size, config.d_model)
 
-        rope = RoPE(config)
+        rope = RoPE(
+            config.n_heads,
+            config.d_rope,
+            config.max_seq_len,
+            per_head=config.per_head_rope,
+        )
 
         self.decoder_stack = nn.ModuleList(
             [DecoderBlock(config, rope) for _ in range(config.n_layers)]

@@ -3,15 +3,12 @@ import pytest
 
 from src import chara
 
+
 test_config = chara.configs.ModelConfig(
     vocab_size=5000,
     max_seq_len=256,
     d_model=128,
     n_layers=4,
-    n_heads=2,
-    d_ff=512,
-    rms_norm_eps=1e-6,
-    dropout=0.1,
 )
 
 
@@ -19,7 +16,7 @@ test_config = chara.configs.ModelConfig(
 @pytest.mark.parametrize("seq_len", [16, 32, 64])
 def test_block_shape(batch_size: int, seq_len: int):
     """test whether input and output shape is the same for block"""
-    rope = chara.layers.RoPE(test_config)
+    rope = chara.layers.RoPE(test_config.n_heads, test_config.d_rope, seq_len)
     block = chara.layers.DecoderBlock(test_config, rope)
     mask = chara.causal_mask(batch_size, seq_len)
 
@@ -35,7 +32,7 @@ def test_block_shape(batch_size: int, seq_len: int):
 @pytest.mark.parametrize("seq_len", [16, 32, 64])
 def test_block_smoke(batch_size: int, seq_len: int):
     """test whether gradient update is correct for attention"""
-    rope = chara.layers.RoPE(test_config)
+    rope = chara.layers.RoPE(test_config.n_heads, test_config.d_rope, seq_len)
     block = chara.layers.DecoderBlock(test_config, rope)
     mask = chara.causal_mask(batch_size, seq_len)
 

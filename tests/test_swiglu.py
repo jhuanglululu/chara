@@ -3,15 +3,12 @@ import pytest
 
 from src import chara
 
+
 test_config = chara.configs.ModelConfig(
     vocab_size=5000,
     max_seq_len=256,
     d_model=128,
     n_layers=4,
-    n_heads=2,
-    d_ff=512,
-    rms_norm_eps=1e-6,
-    dropout=0.1,
 )
 
 
