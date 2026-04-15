@@ -21,6 +21,8 @@ class ModelConfig:
     """numerical stability constant for RMSNorm"""
     dropout: float = 0.0
     """dropout probability applied during training"""
+    d_latent: int = -1
+    """dimension of attention latent space"""
     d_rope: int = -1
     """dimension of rotary position embedding"""
     per_head_rope: bool = False
@@ -37,15 +39,18 @@ class ModelConfig:
             self.n_heads = self.d_model // 64
 
         if self.d_model % self.n_heads != 0:
-            raise ValueError("d_model must integer multiple of n_heads")
+            raise ValueError("d_model must be divisible by n_heads")
 
         self.d_head = self.d_model // self.n_heads
 
-        if self.d_head % 2 != 0:
-            raise ValueError("d_head must be divisible by 2")
+        if self.d_latent == -1:
+            self.d_latent = self.d_head
 
         if self.d_rope == -1:
             self.d_rope = self.d_head
 
         if self.d_ff == -1:
             self.d_ff = 4 * self.d_model
+
+        if self.d_rope % 2 != 0:
+            raise ValueError("d_rope must be divisible by 2")

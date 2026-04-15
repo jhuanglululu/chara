@@ -17,7 +17,6 @@ test_config = chara.configs.ModelConfig(
 def test_end_to_end(batch_size: int, seq_len: int):
     """test whether output shape is correct for entire model"""
     model = chara.TransformerLM(test_config)
-    model.eval()
     mask = chara.causal_mask(batch_size, seq_len)
 
     x = torch.randint(0, test_config.vocab_size, (batch_size, seq_len))
