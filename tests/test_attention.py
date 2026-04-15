@@ -79,7 +79,7 @@ def test_attention_smoke(batch_size: int, seq_len: int):
 @pytest.mark.parametrize("seq_len", [16, 32, 64])
 def test_attention_kv_cache(batch_size: int, seq_len: int):
     """test whether kv cache is applied correctly for attention"""
-    rope = chara.layers.RoPE(test_config)
+    rope = chara.layers.RoPE(test_config.n_heads, test_config.d_rope, seq_len)
     attention = chara.layers.Attention(test_config, rope)
     mask = chara.causal_mask(batch_size, seq_len)
 

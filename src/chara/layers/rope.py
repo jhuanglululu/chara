@@ -41,7 +41,7 @@ class RoPE(nn.Module):
         self.register_buffer("sin_cached", sin_cached, persistent=False)
         self.register_buffer("cos_cached", cos_cached, persistent=False)
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, x: Tensor, offset: int = 0) -> Tensor:
         seq_len = x.shape[2]
 
         if seq_len > self.cos_cached.shape[1]:
@@ -49,7 +49,7 @@ class RoPE(nn.Module):
 
         x1, x2 = x.chunk(2, dim=-1)
         neg_half_x = torch.cat([-x2, x1], dim=-1)
-        cos = self.cos_cached[:, :seq_len, :][None, :, :, :]
-        sin = self.sin_cached[:, :seq_len, :][None, :, :, :]
+        cos = self.cos_cached[:, offset : offset + seq_len, :][None, :, :, :]
+        sin = self.sin_cached[:, offset : offset + seq_len, :][None, :, :, :]
 
         return x * cos + neg_half_x * sin
