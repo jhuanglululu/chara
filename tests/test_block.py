@@ -26,7 +26,7 @@ def test_block_shape(batch_size: int, seq_len: int):
     x = torch.rand(batch_size, seq_len, test_config.d_model)
 
     with torch.no_grad():
-        y = block(x, mask)
+        y, _ = block(x, mask)
 
     assert x.shape == y.shape, f"expected {x.shape}, got {y.shape}"
 
@@ -40,7 +40,7 @@ def test_block_smoke(batch_size: int, seq_len: int):
     mask = chara.causal_mask(batch_size, seq_len)
 
     x = torch.rand(batch_size, seq_len, test_config.d_model, requires_grad=True)
-    y = block(x, mask)
+    y, _ = block(x, mask)
     loss = y.sum()
     loss.backward()
 

@@ -1,10 +1,12 @@
 from torch import nn, Tensor
 
+
 from .attention import Attention
 from .mlp import SwiGluMlp
 from .norm import RmsNorm
 from .rope import RoPE
 from ..configs.model import ModelConfig
+from ..caches import DecoderCache
 
 
 class DecoderBlock(nn.Module):
@@ -16,7 +18,10 @@ class DecoderBlock(nn.Module):
         self.mlp = SwiGluMlp(config)
         self.norm2 = RmsNorm(config)
 
-    def forward(self, x: Tensor, mask: Tensor) -> Tensor:
-        x = x + self.attention(self.norm1(x), mask)
+    def forward(
+        self, x: Tensor, mask: Tensor | None = None, cache: DecoderCache | None = None
+    ) -> tuple[Tensor, DecoderCache | None]:
+        atten_out, cache = self.attention(self.norm1(x), mask, cache)
+        x = x + atten_out
         x = x + self.mlp(self.norm2(x))
-        return x
+        return x, cache

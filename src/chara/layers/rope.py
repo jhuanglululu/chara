@@ -21,15 +21,15 @@ class RoPE(nn.Module):
         self.register_buffer("cos_cached", emb.cos(), persistent=False)
         self.register_buffer("sin_cached", emb.sin(), persistent=False)
 
-    def forward(self, x: torch.Tensor):
+    def forward(self, x: torch.Tensor, offset: int = 0):
         x1, x2 = x.chunk(2, dim=-1)
         neg_half_x = torch.cat([-x2, x1], dim=-1)
 
         seq_len = x.shape[2]
 
         x_rope = (
-            x * self.cos_cached[:seq_len][None, None, :, :]
-            + neg_half_x * self.sin_cached[:seq_len][None, None, :, :]
-        )  # (batch_size, n_heads, seq_len, d_heads)
+            x * self.cos_cached[offset : offset + seq_len][None, None, :, :]
+            + neg_half_x * self.sin_cached[offset : offset + seq_len][None, None, :, :]
+        )  # (batch_size, n_heads, seq_len, d_head)
 
         return x_rope

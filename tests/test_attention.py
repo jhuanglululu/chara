@@ -26,7 +26,7 @@ def test_attention_shape(batch_size: int, seq_len: int):
 
     x = torch.rand(batch_size, seq_len, test_config.d_model)
     with torch.no_grad():
-        y = attention(x, mask)
+        y, _ = attention(x, mask)
 
     assert x.shape == y.shape, (
         f"attention input and output shape mismatched: expected {x.shape} got {y.shape}"
@@ -46,8 +46,8 @@ def test_attention_invariance(batch_size: int, seq_len: int):
     x2[:, -1, :] = torch.rand(batch_size, test_config.d_model)
 
     with torch.no_grad():
-        y1 = attention(x1, mask)
-        y2 = attention(x2, mask)
+        y1, _ = attention(x1, mask)
+        y2, _ = attention(x2, mask)
 
     assert torch.allclose(y1[:, : seq_len - 1, :], y2[:, : seq_len - 1, :]), (
         "earlier output changed when later input modified"
@@ -66,7 +66,7 @@ def test_attention_smoke(batch_size: int, seq_len: int):
     mask = chara.causal_mask(batch_size, seq_len)
 
     x = torch.rand(batch_size, seq_len, test_config.d_model, requires_grad=True)
-    y = attention(x, mask)
+    y, _ = attention(x, mask)
     loss = y.sum()
     loss.backward()
 
@@ -77,3 +77,25 @@ def test_attention_smoke(batch_size: int, seq_len: int):
     for name, param in attention.named_parameters():
         assert param.grad is not None, f"no gradient for {name}"
         assert torch.isfinite(param.grad).all(), f"non-finite gradient for {name}"
+
+
+@pytest.mark.parametrize("batch_size", [1, 2, 4])
+@pytest.mark.parametrize("seq_len", [16, 32, 64])
+def test_attention_kv_cache(batch_size: int, seq_len: int):
+    """test whether kv cache is applied correctly for attention"""
+    rope = chara.layers.RoPE(test_config)
+    attention = chara.layers.Attention(test_config, rope)
+    mask = chara.causal_mask(batch_size, seq_len)
+
+    x = torch.rand(batch_size, seq_len, test_config.d_model, requires_grad=True)
+    with torch.no_grad():
+        y1, _ = attention(x, mask)
+        cache = chara.caches.empty_decoder_cache(
+            batch_size, test_config, torch.device("cpu")
+        )
+        y2_left, cache = attention(x[:, :-1], mask[:, :, :-1, :-1], cache=cache)
+        y2_right, cache = attention(x[:, -1:], cache=cache)
+
+    assert torch.allclose(y1, torch.concat([y2_left, y2_right], dim=1), atol=1e-5), (
+        "kv cache produces different output"
+    )
