@@ -11,7 +11,7 @@ tokenizer.decoder = ByteLevelDecoder()
 trainer = BpeTrainer(
     vocab_size=16384, special_tokens=["<pad>", "<unk>", "<bos>", "<eos>"]
 )
-tokenizer.train(files=["data/overfit.txt"], trainer=trainer)
+tokenizer.train(files=["data/overoverfit.txt"], trainer=trainer)
 
 
 tokenizer.post_processor = TemplateProcessing(

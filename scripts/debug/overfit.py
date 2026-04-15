@@ -24,7 +24,7 @@ tconfig = TrainingConfig(
 print(f"using {tconfig.device}")
 
 tokenizer = get_tokenizer("checkpoints/debug/tokenizer.json")
-dataset = get_dataset(tokenizer, "data/overfit.txt", seq_len=seq_len)
+dataset = get_dataset(tokenizer, "data/overoverfit.txt", seq_len=seq_len)
 loader = get_loader(dataset, config=tconfig)
 
 mconfig = chara.configs.ModelConfig(
