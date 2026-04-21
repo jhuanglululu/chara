@@ -14,11 +14,14 @@ test_config = chara.configs.ModelConfig(
 
 @pytest.mark.parametrize("batch_size", [1, 2, 4])
 @pytest.mark.parametrize("seq_len", [16, 32, 64])
-@pytest.mark.parametrize("per_head", [True, False])
-def test_rope_shape(batch_size: int, seq_len: int, per_head: bool):
+@pytest.mark.parametrize("identical", [True, False])
+def test_rope_shape(batch_size: int, seq_len: int, identical: bool):
     """test whether input and output shape is the same for rope"""
     rope = chara.layers.RoPE(
-        test_config.n_heads, test_config.d_rope, seq_len, per_head=per_head
+        test_config.n_heads,
+        test_config.d_rope,
+        seq_len,
+        identical_rope=identical,
     )
 
     x = torch.rand(batch_size, test_config.n_heads, seq_len, test_config.d_rope)
@@ -29,13 +32,16 @@ def test_rope_shape(batch_size: int, seq_len: int, per_head: bool):
     assert x.shape == y.shape, f"expected {x.shape}, got {y.shape}"
 
 
-@pytest.mark.parametrize("per_head", [True, False])
-def test_rope_relative_position(per_head: bool):
+@pytest.mark.parametrize("identical", [True, False])
+def test_rope_relative_position(identical: bool):
     """test whether relativee position information is embedded correctly"""
     seq_len = 16
 
     rope = chara.layers.RoPE(
-        test_config.n_heads, test_config.d_rope, seq_len, per_head=per_head
+        test_config.n_heads,
+        test_config.d_rope,
+        seq_len,
+        identical_rope=identical,
     )
     q = torch.randn(1, test_config.n_heads, test_config.d_rope)
     k = torch.randn(1, test_config.n_heads, test_config.d_rope)
@@ -62,11 +68,14 @@ def test_rope_relative_position(per_head: bool):
 
 @pytest.mark.parametrize("batch_size", [1, 2, 4])
 @pytest.mark.parametrize("seq_len", [16, 32, 64])
-@pytest.mark.parametrize("per_head", [True, False])
-def test_rope_length(batch_size: int, seq_len: int, per_head: bool):
+@pytest.mark.parametrize("identical", [True, False])
+def test_rope_length(batch_size: int, seq_len: int, identical: bool):
     """test whether rope preserve the length"""
     rope = chara.layers.RoPE(
-        test_config.n_heads, test_config.d_rope, seq_len, per_head=per_head
+        test_config.n_heads,
+        test_config.d_rope,
+        seq_len,
+        identical_rope=identical,
     )
 
     x = torch.rand(batch_size, test_config.n_heads, seq_len, test_config.d_rope)

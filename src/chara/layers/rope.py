@@ -11,17 +11,17 @@ class RoPE(nn.Module):
         d_rope: int,
         seq_len: int,
         base: int = 10000,
-        per_head: bool = True,
+        identical_rope: bool = True,
     ) -> None:
         super().__init__()
-        self._build_cache(n_heads, d_rope, seq_len, base, per_head)
+        self._build_cache(n_heads, d_rope, seq_len, base, identical_rope)
 
     def _build_cache(
-        self, n_heads: int, d_rope: int, seq_len: int, base: int, per_head: bool
+        self, n_heads: int, d_rope: int, seq_len: int, base: int, identical: bool
     ):
         seq_idx = torch.arange(seq_len).float()
 
-        if per_head:
+        if identical:
             inv_freq = 1.0 / (base ** (torch.arange(0, d_rope, 2).float() / d_rope))
             freqs = torch.outer(seq_idx, inv_freq)
             cos = freqs.cos()[None, :, :].expand(n_heads, -1, -1)

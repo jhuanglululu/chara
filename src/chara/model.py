@@ -18,7 +18,7 @@ class TransformerLM(nn.Module):
             config.n_heads,
             config.d_rope,
             config.max_seq_len,
-            per_head=config.per_head_rope,
+            identical_rope=config.identical_rope,
         )
 
         self.decoder_stack = nn.ModuleList(

@@ -25,7 +25,7 @@ class ModelConfig:
     """dimension of attention latent space"""
     d_rope: int = -1
     """dimension of rotary position embedding"""
-    per_head_rope: bool = False
+    identical_rope: bool = False
     """use per head rotary position embedding instead of continuous"""
 
     d_head: int = field(init=False)
