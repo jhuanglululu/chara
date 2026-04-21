@@ -24,18 +24,16 @@ tconfig = TrainingConfig(
 print(f"using {tconfig.device}")
 
 tokenizer = get_tokenizer("checkpoints/debug/tokenizer.json")
-dataset = get_dataset(tokenizer, "data/overfit.txt", seq_len=seq_len)
+dataset = get_dataset(tokenizer, "data/overoverfit.txt", seq_len=seq_len)
 loader = get_loader(dataset, config=tconfig)
 
 mconfig = chara.configs.ModelConfig(
     vocab_size=tokenizer.get_vocab_size(),
     max_seq_len=seq_len,
-    d_model=512,
+    d_model=256,
     n_layers=4,
-    n_heads=8,
-    d_ff=4 * 512,
-    rms_norm_eps=1e-6,
-    dropout=0.0,
+    d_rope=8,
+    d_latent=8,
 )
 
 model = chara.TransformerLM(mconfig)
@@ -70,7 +68,7 @@ for epoch in range(tconfig.epochs):
         loss.backward()
         optimizer.step()
 
-    print(f"\repoch: {epoch}, loss: {min_loss:.1e}        ", end="")
+    print(f"\repoch: {epoch}, loss: {min_loss:.1e}", end="")
     if loss_thresh is not None and min_loss < loss_thresh:
         print(f"\nearly exiting", end="")
         break

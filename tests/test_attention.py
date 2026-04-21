@@ -5,27 +5,23 @@ from src import chara
 
 
 test_config = chara.configs.ModelConfig(
-    vocab_size=5000,
-    max_seq_len=256,
-    d_model=128,
-    n_layers=4,
-    n_heads=2,
-    d_ff=512,
-    rms_norm_eps=1e-6,
-    dropout=0.1,
+    vocab_size=5000, max_seq_len=256, d_model=128, n_layers=4, d_latent=16, d_rope=16
 )
 
 
 @pytest.mark.parametrize("batch_size", [1, 2, 4])
 @pytest.mark.parametrize("seq_len", [16, 32, 64])
-def test_attention_shape(batch_size: int, seq_len: int):
+@pytest.mark.parametrize("eval", [True, False])
+def test_attention_shape(batch_size: int, seq_len: int, eval: bool):
     """test whether input and output shape is the same for attention"""
-    rope = chara.layers.RoPE(test_config)
+    rope = chara.layers.RoPE(test_config.n_heads, test_config.d_rope, seq_len)
     attention = chara.layers.Attention(test_config, rope)
     mask = chara.causal_mask(batch_size, seq_len)
 
     x = torch.rand(batch_size, seq_len, test_config.d_model)
     with torch.no_grad():
+        if eval:
+            attention.eval()
         y, _ = attention(x, mask)
 
     assert x.shape == y.shape, (
@@ -37,7 +33,7 @@ def test_attention_shape(batch_size: int, seq_len: int):
 @pytest.mark.parametrize("seq_len", [16, 32, 64])
 def test_attention_invariance(batch_size: int, seq_len: int):
     """test whether masking is applied correctly for attention"""
-    rope = chara.layers.RoPE(test_config)
+    rope = chara.layers.RoPE(test_config.n_heads, test_config.d_rope, seq_len)
     attention = chara.layers.Attention(test_config, rope)
     mask = chara.causal_mask(batch_size, seq_len)
 
@@ -61,7 +57,7 @@ def test_attention_invariance(batch_size: int, seq_len: int):
 @pytest.mark.parametrize("seq_len", [16, 32, 64])
 def test_attention_smoke(batch_size: int, seq_len: int):
     """test whether gradient update is correct for attention"""
-    rope = chara.layers.RoPE(test_config)
+    rope = chara.layers.RoPE(test_config.n_heads, test_config.d_rope, seq_len)
     attention = chara.layers.Attention(test_config, rope)
     mask = chara.causal_mask(batch_size, seq_len)
 
@@ -83,12 +79,13 @@ def test_attention_smoke(batch_size: int, seq_len: int):
 @pytest.mark.parametrize("seq_len", [16, 32, 64])
 def test_attention_kv_cache(batch_size: int, seq_len: int):
     """test whether kv cache is applied correctly for attention"""
-    rope = chara.layers.RoPE(test_config)
+    rope = chara.layers.RoPE(test_config.n_heads, test_config.d_rope, seq_len)
     attention = chara.layers.Attention(test_config, rope)
     mask = chara.causal_mask(batch_size, seq_len)
 
-    x = torch.rand(batch_size, seq_len, test_config.d_model, requires_grad=True)
+    x = torch.rand(batch_size, seq_len, test_config.d_model)
     with torch.no_grad():
+        attention.eval()
         y1, _ = attention(x, mask)
         cache = chara.caches.empty_decoder_cache(
             batch_size, test_config, torch.device("cpu")
@@ -98,4 +95,23 @@ def test_attention_kv_cache(batch_size: int, seq_len: int):
 
     assert torch.allclose(y1, torch.concat([y2_left, y2_right], dim=1), atol=1e-5), (
         "kv cache produces different output"
+    )
+
+
+@pytest.mark.parametrize("batch_size", [1, 2, 4])
+@pytest.mark.parametrize("seq_len", [16, 32, 64])
+def test_attention_inference(batch_size: int, seq_len: int):
+    """test whether training and inference path is identical"""
+    rope = chara.layers.RoPE(test_config.n_heads, test_config.d_rope, seq_len)
+    attention = chara.layers.Attention(test_config, rope)
+    mask = chara.causal_mask(batch_size, seq_len)
+
+    x = torch.rand(batch_size, seq_len, test_config.d_model)
+    with torch.no_grad():
+        y1, _ = attention(x, mask=mask, cache=None)
+        attention.eval()
+        y2, _ = attention(x, mask=mask, cache=None)
+
+    assert torch.allclose(y1, y2, atol=1e-5), (
+        "training and inference produces different output"
     )

@@ -1,35 +1,55 @@
 import torch
-from torch import nn
+from torch import nn, Tensor
 
 from ..configs.model import ModelConfig
 
 
 class RoPE(nn.Module):
-    def __init__(self, config: ModelConfig, base: int = 10000) -> None:
+    def __init__(
+        self,
+        n_heads: int,
+        d_rope: int,
+        seq_len: int,
+        base: int = 10000,
+        identical_rope: bool = True,
+    ) -> None:
         super().__init__()
-        self._build_cache(base, config.d_head, config.max_seq_len)
+        self._build_cache(n_heads, d_rope, seq_len, base, identical_rope)
 
-    def _build_cache(self, base, d_head, seq_len):
-        inv_freq = 1.0 / (base ** (torch.arange(0, d_head, 2).float() / d_head))
+    def _build_cache(
+        self, n_heads: int, d_rope: int, seq_len: int, base: int, identical: bool
+    ):
         seq_idx = torch.arange(seq_len).float()
 
-        freqs = torch.outer(seq_idx, inv_freq)
-        emb = torch.cat([freqs, freqs], dim=1)
+        if identical:
+            inv_freq = 1.0 / (base ** (torch.arange(0, d_rope, 2).float() / d_rope))
+            freqs = torch.outer(seq_idx, inv_freq)
+            cos = freqs.cos()[None, :, :].expand(n_heads, -1, -1)
+            sin = freqs.sin()[None, :, :].expand(n_heads, -1, -1)
+        else:
+            d_all = n_heads * d_rope
+            inv_freq = 1.0 / (base ** (torch.arange(0, d_all, 2).float() / d_all))
+            freqs = torch.outer(seq_idx, inv_freq)
+            cos = freqs.cos().reshape(seq_len, n_heads, d_rope // 2).permute(1, 0, 2)
+            sin = freqs.sin().reshape(seq_len, n_heads, d_rope // 2).permute(1, 0, 2)
 
-        self.cos_cached: torch.Tensor
-        self.sin_cached: torch.Tensor
-        self.register_buffer("cos_cached", emb.cos(), persistent=False)
-        self.register_buffer("sin_cached", emb.sin(), persistent=False)
+        cos_cached = torch.concat([cos, cos], dim=-1)
+        sin_cached = torch.concat([sin, sin], dim=-1)
 
-    def forward(self, x: torch.Tensor, offset: int = 0):
-        x1, x2 = x.chunk(2, dim=-1)
-        neg_half_x = torch.cat([-x2, x1], dim=-1)
+        self.cos_cached: Tensor
+        self.sin_cached: Tensor
+        self.register_buffer("sin_cached", sin_cached, persistent=False)
+        self.register_buffer("cos_cached", cos_cached, persistent=False)
 
+    def forward(self, x: Tensor, offset: int = 0) -> Tensor:
         seq_len = x.shape[2]
 
-        x_rope = (
-            x * self.cos_cached[offset : offset + seq_len][None, None, :, :]
-            + neg_half_x * self.sin_cached[offset : offset + seq_len][None, None, :, :]
-        )  # (batch_size, n_heads, seq_len, d_head)
+        if seq_len > self.cos_cached.shape[1]:
+            raise ValueError("seq_len exceeds max_seq_len inside RoPE")
 
-        return x_rope
+        x1, x2 = x.chunk(2, dim=-1)
+        neg_half_x = torch.cat([-x2, x1], dim=-1)
+        cos = self.cos_cached[:, offset : offset + seq_len, :][None, :, :, :]
+        sin = self.sin_cached[:, offset : offset + seq_len, :][None, :, :, :]
+
+        return x * cos + neg_half_x * sin

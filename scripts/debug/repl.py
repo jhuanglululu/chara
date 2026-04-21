@@ -15,6 +15,7 @@ def repl(
     max_seq_len: int,
 ):
     with torch.no_grad():
+        model.eval()
         while True:
             prompt = input(" > ")
             if prompt.strip().lower() == "exit":
