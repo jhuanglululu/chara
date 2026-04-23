@@ -137,13 +137,16 @@ config = chara.configs.ModelConfig(
     identical_rope=identical_rope,
 )
 
-device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"using {device}")
 
 loader = torch.utils.data.DataLoader(
     RetrievalDataset(tokenizer, datas, n_chunk, seq_len),
     batch_size=batch_size,
     shuffle=True,
+    num_workers=8,
+    pin_memory=True,
+    persistent_workers=True,
 )
 
 
@@ -174,30 +177,31 @@ adamw_optim = torch.optim.AdamW(adamw_params, lr=3e-4)
 
 print("training start")
 
+causal = chara.causal_mask(batch_size, seq_len).to(device)
+
 for epoch in range(epochs):
-    min_loss = float("inf")
+    min_loss = torch.tensor(float("inf"), device=device)
 
     for input_ids, pad_mask, response_mask in loader:
         muon_optim.zero_grad()
         adamw_optim.zero_grad()
 
-        causal = chara.causal_mask(input_ids.shape[0], input_ids.shape[1])
-        mask = causal | pad_mask[:, None, None, :]
+        input_ids = input_ids.to(device, non_blocking=True)
+        pad_mask = pad_mask.to(device, non_blocking=True)
+        response_mask = response_mask.to(device, non_blocking=True)
 
-        input_ids = input_ids.to(device)
-        mask = mask.to(device)
+        mask = causal[: input_ids.shape[0]] | pad_mask[:, None, None, :]
 
         logits, _ = model(input_ids, mask)
-        loss = chara.cross_entropy_loss(logits, input_ids, response_mask.to(device))
+        loss = chara.cross_entropy_loss(logits, input_ids, response_mask)
 
-        if loss.item() < min_loss:
-            min_loss = loss.item()
+        min_loss = torch.minimum(min_loss, loss.detach())
 
         loss.backward()
         muon_optim.step()
         adamw_optim.step()
 
-    print(f"\repoch: {epoch}, loss: {min_loss:.1e}", end="")
+    print(f"\repoch: {epoch}, loss: {min_loss.item():.1e}", end="")
 
 print()
 
